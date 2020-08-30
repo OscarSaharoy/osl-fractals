@@ -1,0 +1,30 @@
+#include "complex.h"
+
+#define N_ITER 1000
+#define ESCAPE_RADIUS 100
+
+color colorAtIteration(float i) {
+
+	float x = i/N_ITER;
+	return x; 
+}
+
+shader julia( point object = 1, point C = 0, color tint = 1, output color outputColour = 1 ) {
+
+	complex z = complex(object[1], object[0]);
+	complex c = complex(C[0], C[1]);
+
+	float i = 0;
+	while( ++i < N_ITER && mod2(z) < ESCAPE_RADIUS ) {
+		z = c - z*z;
+	}
+
+	if(i<N_ITER) {
+
+		float log_z = log(mod2(z)) / 2;
+		float nu = log(log_z / M_LN2) / M_LN2;
+		i = i + 1 - nu;
+
+		outputColour = colorAtIteration(i) * tint;
+	}
+}
