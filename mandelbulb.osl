@@ -1,0 +1,74 @@
+#define dx vector(1, 0, 0)
+#define dy vector(0, 1, 0)
+#define dz vector(0, 0, 1)
+
+float signedDist(point pos, float power) {
+
+	point z = pos;
+
+	float dr = 1.0;
+	float r = 0.0;
+
+	for (int i = 0; i < 10; i++) {
+
+		r = length(z);
+
+		if (r>10) break;
+		
+		// convert to polar coordinates
+		float theta = acos(z[2]/r);
+		float phi = atan2(z[1], z[0]);
+
+		dr = pow( r, power-1.0 )*power*dr + 1.0;
+		
+		// scale and rotate the point
+		float zr = pow(r, power);
+		theta = theta*power;
+		phi = phi*power;
+		
+		// convert back to cartesian coordinates
+		z = zr*vector(sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta));
+		z += pos;
+	}
+
+	return 0.5*log(r)*r/dr;
+}
+
+normal getNormal(point position, float power) {
+	
+	float h = 1e-4;
+	vector grad = vector( signedDist(position + dx*h, power) - signedDist(position - dx*h, power),
+						  signedDist(position + dy*h, power) - signedDist(position - dy*h, power),
+						  signedDist(position + dz*h, power) - signedDist(position - dz*h, power) );
+
+	return normalize(grad);
+}
+
+color getColor(normal nor, point position, point lightPos) {
+
+	vector lightDir = normalize(position - lightPos);
+	return (dot(-lightDir, nor)*0.5 + 0.5);
+}
+
+shader mandelbulb( point position = 0, vector incoming = 0, point lightPos = 0, color tint = 1, float power = 8, float threshold = 0.01, output color outputColour = 1 ) {
+
+	outputColour = (position[0]+3)/5 * tint;
+
+	point currentPos = position;
+	float dist = signedDist(currentPos, power);
+
+	float n = 0;
+
+	while( dist < 100.0 ) {
+
+		++n;
+
+		currentPos -= normalize(incoming) * dist;
+		dist = signedDist(currentPos, power);
+
+		if (dist < threshold) {
+			outputColour = n/200 * tint + pow(getColor(getNormal(currentPos, power), currentPos, lightPos) * tint, 3);
+			break;
+		}
+	}
+}
