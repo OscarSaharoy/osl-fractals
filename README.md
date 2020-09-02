@@ -4,3 +4,4 @@ Currently only shaders for mandelbrot and julia sets, you can add these to a scr
 
 ![](https://github.com/OscarSaharoy/osl-fractals/blob/master/julia.png)
 
+![](https://github.com/OscarSaharoy/osl-fractals/blob/master/mandelbulb (2).png)
