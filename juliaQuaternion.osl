@@ -1,0 +1,98 @@
+#include "quaternion.h"
+
+#define da quaternion(1, 0, 0, 0)
+#define db quaternion(0, 1, 0, 0)
+#define dc quaternion(0, 0, 1, 0)
+#define dd quaternion(0, 0, 0, 1)
+
+int isInJulia(quaternion currentPos, quaternion c) {
+
+	quaternion z  = currentPos;
+	int i=0;
+
+	while( ++i<1024 && mod(z) < 2 )
+	{
+		z  = z*z + c;
+	}
+
+	return i>=1024;
+}
+
+float juliaDE(quaternion currentPos, quaternion c) {
+
+	quaternion z = currentPos;
+	float dz2 = 1.0;
+
+	// iterate this point until we can guess if the sequence diverges or converges.
+	float zm2 = mod2(z);
+
+	for( int i=0; i<128; ++i )
+	{
+		dz2 = dz2 * 4.0 * zm2;
+		z  = z*z + c;
+
+		zm2 = mod2(z);
+		if (zm2 > 1e1) break;
+	}
+
+	return sqrt(zm2/dz2)*0.25*log(zm2); //lower bound on distance to surface
+}
+
+float sphereDE(quaternion currentPos, float radius) {
+	
+	return mod(currentPos - dd*currentPos.d) - radius;
+}
+
+float DE(quaternion currentPos, quaternion c, float radius) {
+
+	return min(max( juliaDE(currentPos, c), -sphereDE(currentPos, radius)), sphereDE(currentPos, radius/2) );
+}
+
+quaternion getNormal(quaternion pos, quaternion c, float radius) {
+
+	float h = 1e-4;
+
+	quaternion grad = quaternion(
+		DE(pos + da*h, c, radius) - DE(pos - da*h, c, radius),
+		DE(pos + db*h, c, radius) - DE(pos - db*h, c, radius),
+		DE(pos + dc*h, c, radius) - DE(pos - dc*h, c, radius),
+		DE(pos + dd*h, c, radius) - DE(pos - dd*h, c, radius)
+	);
+
+	return normalize(grad);
+}
+
+color getColor(quaternion nor, quaternion position, quaternion lightPos, quaternion rayQuat) {
+
+	if( mod2(position - position.d*dd) < .08 ) return 100;
+
+	quaternion lightDir = normalize(lightPos - position);
+	quaternion refl     = 2*dot(lightDir, nor)*nor - lightDir;
+
+	return 0.5 + 0.5*dot(lightDir, nor) + 10*max(pow(dot(refl, -rayQuat), 31), 0);
+}
+
+shader juliaQuaternion( point lightPos = 0, color tint = 1, float threshold = 0.01, output color outputColour = 0.031, float ca=0, float cb=0, float cc=0, float cd=0, float d=0 ) {
+
+	quaternion currentPos = vecToQuat(P, d);
+	quaternion rayQuat    = vecToQuat(-normalize(I), 0);
+	quaternion c          = quaternion( ca, cb, cc, cd );
+	quaternion lightQuat  = vecToQuat(lightPos, 0);
+
+	float dist = 0;
+	float n    = 0;
+
+	while( dist < 2 && ++n < 500 ) {
+
+		dist = DE(currentPos, c, 0.3);
+		currentPos = currentPos + rayQuat * dist;
+
+		if (dist < threshold) {
+
+			quaternion nor = getNormal(currentPos, c, 0.3);
+
+			outputColour = getColor(nor, currentPos, lightQuat, rayQuat) * tint;
+			return;
+		}
+	}
+}
