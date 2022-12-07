@@ -50,11 +50,11 @@ color getColor(normal nor, point position, point lightPos) {
 	return (dot(-lightDir, nor)*0.5 + 0.5);
 }
 
-shader mandelbulb( point position = 0, vector incoming = 0, point lightPos = 0, color tint = 1, float power = 8, float threshold = 0.01, output color outputColour = 1 ) {
+shader mandelbulb( point lightPos = 0, color tint = 1, float power = 8, float threshold = 0.01, output color outputColour = 1 ) {
 
-	outputColour = (position[0]+3)/5 * tint;
+	outputColour = (P[0]+3)/5 * tint;
 
-	point currentPos = position;
+	point currentPos = P;
 	float dist = signedDist(currentPos, power);
 
 	float n = 0;
@@ -63,7 +63,7 @@ shader mandelbulb( point position = 0, vector incoming = 0, point lightPos = 0, 
 
 		++n;
 
-		currentPos -= normalize(incoming) * dist;
+		currentPos -= normalize(I) * dist;
 		dist = signedDist(currentPos, power);
 
 		if (dist < threshold) {
