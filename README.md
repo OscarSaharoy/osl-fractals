@@ -4,7 +4,10 @@ Shaders for mandelbrot and julia sets as well as the mandelbulb and quaternion j
 
 
 ![](https://github.com/OscarSaharoy/osl-fractals/blob/master/animation.mp4)
+
 https://github.com/OscarSaharoy/osl-fractals/blob/master/animation.mp4
+
+https://raw.githubusercontent.com/OscarSaharoy/osl-fractals/master/animation.mp4
 
 ![](https://github.com/OscarSaharoy/osl-fractals/blob/master/mandelbulb.png)
 
