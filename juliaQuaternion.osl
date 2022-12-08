@@ -32,10 +32,10 @@ float juliaDE(quaternion currentPos, quaternion c) {
 		z  = z*z + c;
 
 		zm2 = mod2(z);
-		if (zm2 > 1e1) break;
+		if (zm2 > 1e3) break;
 	}
 
-	return sqrt(zm2/dz2)*0.25*log(zm2); //lower bound on distance to surface
+	return sqrt(zm2/dz2)*0.1*log(zm2); //lower bound on distance to surface
 }
 
 float sphereDE(quaternion currentPos, float radius) {
@@ -72,7 +72,7 @@ color getColor(quaternion nor, quaternion position, quaternion lightPos, quatern
 	return 0.5 + 0.5*dot(lightDir, nor) + 10*max(pow(dot(refl, -rayQuat), 31), 0);
 }
 
-shader juliaQuaternion( point lightPos = 0, color tint = 1, float threshold = 0.01, output color outputColour = 0.031, float ca=0, float cb=0, float cc=0, float cd=0, float d=0 ) {
+shader juliaQuaternion( point lightPos = 0, color tint = 1, float threshold = 0.01, output color outputColour = color(0.53,0.74,0.72)*2, float ca=0, float cb=0, float cc=0, float cd=0, float d=0 ) {
 
 	quaternion currentPos = vecToQuat(P, d);
 	quaternion rayQuat    = vecToQuat(-normalize(I), 0);
@@ -82,7 +82,7 @@ shader juliaQuaternion( point lightPos = 0, color tint = 1, float threshold = 0.
 	float dist = 0;
 	float n    = 0;
 
-	while( dist < 2 && ++n < 500 ) {
+	while( dist < 10 && ++n < 500 ) {
 
 		dist = DE(currentPos, c, 0.3);
 		currentPos = currentPos + rayQuat * dist;
